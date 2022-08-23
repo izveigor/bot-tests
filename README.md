@@ -1,5 +1,7 @@
-# Bot-tests [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/izveigor/bot-tests/blob/main/LICENSE) 
+# Bot tests [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/izveigor/bot-tests/blob/main/LICENSE) 
 ![3](https://user-images.githubusercontent.com/68601180/186197495-51627433-ee85-4243-87cb-4e59a4ddb2f6.JPG)
+
+(Ссылка на аватар бота - https://ru.wikipedia.org/wiki/HAL_9000#/media/%D0%A4%D0%B0%D0%B9%D0%BB:HAL9000.svg)
 
 Телеграм бот, создающий тесты.
 
@@ -16,8 +18,7 @@
 | --------------------| ----------------------------------- | --- |
 | Поле редактирования | Стандартное поле ввода в Телеграме  | ![input](https://user-images.githubusercontent.com/68601180/186197721-ebb357f4-add1-42da-b0b6-6d687842d18c.JPG)|
 | Кнопка              | Кнопка с текстовым значением ответа | ![button](https://user-images.githubusercontent.com/68601180/186197585-6e7a057e-41be-42e7-b977-41d836dc72b9.JPG)|
-| Флаговая кнопка     | Можно выбрать несколько ответов     | ![checkbox](https://user-images.githubusercontent.com/68601180/186197709-829defad-3e5d-43fd-b91e-92cc34ed6345.JPG)
-|
+| Флаговая кнопка     | Можно выбрать несколько ответов     | ![checkbox](https://user-images.githubusercontent.com/68601180/186197709-829defad-3e5d-43fd-b91e-92cc34ed6345.JPG)|
 
 - Отображение результата теста пользователю (количество и процент правильных ответов, описание результата теста)
 - Возможность преждевременно закончить тест
@@ -29,7 +30,7 @@
 ## Запуск
 Для того чтобы запустить бота, необходимо выполнить поэтапную инструкцию:
 1) Скачать исходник кода (с помощью приложения или сайта Github или с помощью команды git clone)
-2) Зайти в файл config/.dev.prod.env и изменить значение TELEGRAM_TOKEN на свой токен (см. https://core.telegram.org/bots/api)
+2) Зайти в файл config/.prod.env и изменить значение TELEGRAM_TOKEN на свой токен (см. https://core.telegram.org/bots/api)
 ```
 TELEGRAM_TOKEN=Токен
 ```
@@ -213,6 +214,7 @@ history.json
 На этом этапе создание теста подошло к концу. Если вы хотите начать тест, то пропишите команду "/test_FirstRussianRulers", после которой вам высветится описание теста, далее нажмите или пропишите команду "/start_test", и после этого у вас будут появляться вопросы этого теста.
 
 Результат:
+
 ![1](https://user-images.githubusercontent.com/68601180/186197441-e6d1e22e-aa35-4b98-972f-2695643aff2c.JPG)
 ![2](https://user-images.githubusercontent.com/68601180/186197480-ffec0a0b-b5ec-413f-a940-0449ebe9305b.JPG)
 ![3](https://user-images.githubusercontent.com/68601180/186197495-51627433-ee85-4243-87cb-4e59a4ddb2f6.JPG)
