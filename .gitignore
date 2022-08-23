@@ -1,0 +1,7 @@
+__pycache__
+.pytest_cache
+.coverage
+.python-version
+.tox
+.mypy_cache
+logfile.log
