@@ -28,7 +28,7 @@ class TestBuilder:
 @patch("src.builder.bot.get_file", new_callable=AsyncMock)
 @patch("src.builder.BuilderTest._add_test")
 @patch("src.builder.BuilderTest._return_test")
-@patch("src.builder.BuilderTest._get_directory_number")
+@patch("src.builder.BuilderTest.get_directory_number")
 @patch("src.builder.os.remove")
 @patch("src.builder.ZipFile")
 @patch("src.builder.open")
@@ -49,7 +49,7 @@ class TestCreateTest:
         )
         return message
 
-    async def test_create_test(
+    async def test_create_test_by_json(
         self,
         mock__init__: Mock,
         mock_path_exists: Mock,
@@ -70,7 +70,7 @@ class TestCreateTest:
         file_mock = AsyncMock()
         file_mock.download_file.return_value = "data_from_download_file"
         mock_get_file.return_value = file_mock
-        await BuilderTest().create_test(message, "file.zip", errors)
+        await BuilderTest().create_test_by_json(message, "file.zip", errors)
 
         path_to_file = PATH_OF_DATA + "/-1/1/file.zip"
         mock_get_directory_number.assert_called_once_with(
@@ -167,7 +167,7 @@ class TestGetDirectoryNumber:
     def test_right(
         self, mock__init__: Mock, files: list[str], result_number: int
     ) -> None:
-        number = BuilderTest()._get_directory_number(files, [])
+        number = BuilderTest().get_directory_number(files, [])
         assert number == result_number
 
     def test_number_more_than_30(self, mock__init__: Mock) -> None:
@@ -175,7 +175,7 @@ class TestGetDirectoryNumber:
         with pytest.raises(
             BotFilesException,
         ):
-            BuilderTest()._get_directory_number([str(i) for i in range(1, 31)], errors)
+            BuilderTest().get_directory_number([str(i) for i in range(1, 31)], errors)
         re.match(
             "У вас больше 30 тестов, вы больше не можете создавать тесты.",
             str(errors[0]),

@@ -40,7 +40,27 @@ class BuilderTest(metaclass=Singleton):
         """
         self._create_tests_from_files()
 
-    async def create_test(
+    async def create_test(self, from_user_id, file_content):
+        directory = os.path.join(PATH_OF_DATA, str(from_user_id))
+        if not os.path.exists(directory):
+            os.mkdir(directory)  # pragma: no coverage
+
+        files: list[str] = os.listdir(directory)
+        number: int = self.get_directory_number(files, [])
+        directory = os.path.join(directory, str(number))
+
+        if not os.path.exists(directory):
+            os.mkdir(directory)  # pragma: no coverage
+
+        path = os.path.join(PATH_OF_DATA, str(from_user_id), str(number))
+
+        with open(os.path.join(path, "test.json"), "w", encoding="utf-8") as f:
+            json.dump(file_content, f)
+
+        test = self._return_test(path, [])
+        self._add_test(from_user_id, number, os.path.join(directory, test), [])
+
+    async def create_test_by_json(
         self, message: Message, file_name: str, errors: list[Union[str, int]]
     ) -> None:
         """Создает тест, отправленным пользователем
@@ -56,7 +76,7 @@ class BuilderTest(metaclass=Singleton):
             os.mkdir(directory)  # pragma: no coverage
 
         files: list[str] = os.listdir(directory)
-        number: int = self._get_directory_number(files, errors)
+        number: int = self.get_directory_number(files, errors)
         errors.append(number)
         directory = os.path.join(directory, str(number))
 
@@ -103,7 +123,7 @@ class BuilderTest(metaclass=Singleton):
         return tests[0]
 
     @staticmethod
-    def _get_directory_number(files: list[str], errors: list[Union[str, int]]) -> int:
+    def get_directory_number(files: list[str], errors: list[Union[str, int]]) -> int:
         for number, directory_ in enumerate(files, start=1):
             if directory_ != str(number):
                 break

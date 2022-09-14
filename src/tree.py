@@ -144,34 +144,27 @@ class CommandsTestTree(metaclass=Singleton):
         return x
 
     def delete(self, z: Node) -> None:
-        if z is self.root:
-            self.root = None
+        color = z.color
+        if z.left is None:
+            temp_node = z.right
+            self._transplant(z, z.right)
+        elif z.right is None:
+            temp_node = z.left
+            self._transplant(z, z.left)
         else:
-            y = z
-            y_original_color = y.color
-            x = None
-            if z and z.right and z.left is None:
-                x = z.right
-                self._transplant(z, z.right)
-            elif z and z.left and z.right is None:
-                x = z.left
-                self._transplant(z, z.left)
-            elif z and z.right:
-                y = self._tree_minimum(z.right)
-                y_original_color = y.color
-                if y and y.right:
-                    x = y.right
-                if y and y.right and y.parent is not z:
-                    self._transplant(y, y.right)
-                    y.right = z.right
-                    y.right.parent = y
-                self._transplant(z, y)
-                y.left = z.left
-                if y.left:
-                    y.left.parent = y
-                y.color = z.color
-            if x and y_original_color == ColorTree.BLACK:
-                self._delete_fixup(x)
+            m = self._tree_minimum(z.right)
+            color = m.color
+            temp_node = m.right
+            if m.parent is not z:
+                self._transplant(m, m.right)
+                m.right = z.right
+                m.right.parent = m
+            self._transplant(z, m)
+            m.left = z.left
+            m.left.parent = m
+            m.color = z.color
+        if temp_node and color == ColorTree.BLACK:
+            self._delete_fixup(temp_node)
 
     def _change_delete(self, x: Node) -> None:
         if x and x.parent and x is x.parent.left:
@@ -275,10 +268,11 @@ class CommandsTestTree(metaclass=Singleton):
     def sort(self) -> list[Test]:
         result: list[Test] = []
         self._inorder_tree_walk(self.root, result)
+
         return result
 
     def _inorder_tree_walk(self, x: Optional[Node], result: list[Test]) -> None:
         if x is not None:
             self._inorder_tree_walk(x.left, result)
-            result.append(x.key)
+            result.append(x.key.command + " - " + x.key.name)
             self._inorder_tree_walk(x.right, result)

@@ -85,7 +85,6 @@ async def test_Test(mock_send_message: Mock, mock_send_photo: Mock) -> None:
         user_id,
         "Название: Name\nОписание:\nОписание отсутствует.",
     )
-    print(mock_send_message.mock_calls[0])
     assert isinstance(
         mock_send_message.mock_calls[0].kwargs["reply_markup"], ReplyKeyboardMarkup
     )

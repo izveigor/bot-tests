@@ -1,6 +1,7 @@
 import asyncio
 import os
 import shutil
+from traceback import print_exception
 from typing import Union
 
 from telegram import Update
@@ -16,12 +17,55 @@ from telegram.ext import (
 from src.builder import BuilderTest
 from src.constants import PATH_OF_DATA, REGEX_COMMAND, REGEX_LIST
 from src.errors import BotException, BotFilesException, BotParseException
+from src.graph import STATES
 from src.log import logger
 from src.test import Test
 from src.tree import CommandsTestTree, Node
 from src.user import User
 
 
+async def handle(state: str, update: Update, context: CallbackContext):
+    int_state = int(state)
+    await STATES[int_state].handle(update.effective_user.id, update.message.text)
+    await STATES[int(User.get(update.effective_user.id, "state"))].send(
+        update.effective_user.id
+    )
+
+
+async def create(update: Update, context: CallbackContext):
+    path = os.path.join(PATH_OF_DATA, str(update.effective_user.id))
+    if os.path.exists(path):
+        BuilderTest().get_directory_number(os.listdir(path), [])
+    try:
+        state = User.get(update.effective_user.id, "state")
+    except ValueError:
+        User.set(update.effective_user.id, state="0")
+        await context.bot.send_message(
+            update.effective_user.id,
+            text="Вы начали создание нового теста. Для того чтобы полностью создать тест, следуйте инструкциям снизу. Если вы перезахотели создавать тест, то пропишите команду /stop.",
+        )
+        await STATES[0].send(update.effective_user.id)
+    else:
+        await context.bot.send_message(
+            update.effective_user.id,
+            text="Вы не закончили процесс создания теста. Если вы хотите завершить его, то напишите команду /stop. Если вы хотите продолжить, то отвечайте на следующие инструкции:",
+        )
+        await STATES[int(state)].send(update.effective_user.id)
+
+
+def allow(function):
+    async def wrapper(update: Update, context: CallbackContext):
+        try:
+            state = User.get(update.effective_user.id, "state")
+        except ValueError:
+            return await function(update, context)
+        else:
+            return await handle(state, update, context)
+
+    return wrapper
+
+
+@allow
 async def start(update: Update, context: CallbackContext) -> None:
     await context.bot.send_message(
         update.effective_user.id,
@@ -29,6 +73,7 @@ async def start(update: Update, context: CallbackContext) -> None:
     )
 
 
+@allow
 async def help(update: Update, context: CallbackContext) -> None:
     await context.bot.send_message(
         update.effective_user.id,
@@ -37,6 +82,7 @@ async def help(update: Update, context: CallbackContext) -> None:
     )
 
 
+@allow
 async def about(update: Update, context: CallbackContext) -> None:
     await context.bot.send_message(
         update.effective_user.id,
@@ -44,6 +90,7 @@ async def about(update: Update, context: CallbackContext) -> None:
     )
 
 
+@allow
 async def my_tests(update: Update, context: CallbackContext) -> None:
     tests = User.get_tests(update.effective_user.id)
     if not tests or len(tests) == 0:
@@ -60,6 +107,7 @@ async def my_tests(update: Update, context: CallbackContext) -> None:
         )
 
 
+@allow
 async def delete(update: Update, context: CallbackContext) -> None:
     _, test = update.message.text.split()
     if not REGEX_COMMAND.match(test):
@@ -92,6 +140,7 @@ async def delete(update: Update, context: CallbackContext) -> None:
             )
 
 
+@allow
 async def test(update: Update, context: CallbackContext) -> None:
     try:
         active_test = User.get(update.effective_user.id, "active_test")
@@ -122,6 +171,7 @@ async def test(update: Update, context: CallbackContext) -> None:
                 await test.key.see(update.effective_user.id)
 
 
+@allow
 async def start_test(update: Update, context: CallbackContext) -> None:
     try:
         test_command = User.get(update.effective_user.id, "checked")
@@ -139,6 +189,7 @@ async def start_test(update: Update, context: CallbackContext) -> None:
             await test.key.start(update.effective_user.id)
 
 
+@allow
 async def stop(update: Update, context: CallbackContext) -> None:
     try:
         test_command = User.get(update.effective_user.id, "active_test")
@@ -156,6 +207,7 @@ async def stop(update: Update, context: CallbackContext) -> None:
             await test.key.stop(update.effective_user.id)
 
 
+@allow
 async def list_(update: Update, context: CallbackContext) -> None:
     if not REGEX_LIST.match(update.message.text):
         await context.bot.send_message(
@@ -177,10 +229,7 @@ async def list_(update: Update, context: CallbackContext) -> None:
             )
         else:
             list_tests = "\n".join(
-                [
-                    test.command + " - " + test.name
-                    for test in CommandsTestTree().sort()[start : end + 1]
-                ]
+                [test for test in CommandsTestTree().sort()[start : end + 1]]
             )
             await context.bot.send_message(
                 update.effective_user.id,
@@ -188,6 +237,7 @@ async def list_(update: Update, context: CallbackContext) -> None:
             )
 
 
+@allow
 async def other_message(update: Update, context: CallbackContext) -> None:
     try:
         active_test = User.get(update.effective_user.id, "active_test")
@@ -260,7 +310,7 @@ async def get_document_messages(update: Update, context: CallbackContext) -> Non
         errors: list[Union[str, int]] = []
         try:
             await asyncio.gather(
-                BuilderTest().create_test(update.message, file_name, errors)
+                BuilderTest().create_test_by_json(update.message, file_name, errors)
             )
         except BotParseException:
             shutil.rmtree(
@@ -312,6 +362,7 @@ def start_bot() -> None:
     application.add_handler(CommandHandler("start_test", start_test))
     application.add_handler(CommandHandler("stop", stop))
     application.add_handler(CommandHandler("delete", delete))
+    application.add_handler(CommandHandler("create", create))
 
     application.add_handler(CallbackQueryHandler(button))
     application.add_handler(MessageHandler(filters.Regex(r"^/list+"), list_))
@@ -329,6 +380,7 @@ def main() -> None:
         if not issubclass(type(error), BotException) and not issubclass(
             type(error), TimeoutError
         ):
+            print_exception(error)
             logger.error(error)
         else:
             main()
@@ -336,4 +388,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     BuilderTest()
+    if not os.path.exists(PATH_OF_DATA):
+        os.mkdir(PATH_OF_DATA)
     main()

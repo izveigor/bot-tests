@@ -1632,7 +1632,11 @@ class TestInorderTreeWalk:
         tree.root = x
         tree._inorder_tree_walk(x, result)
 
-        assert result == [first_test, third_test, second_test]
+        assert result == [
+            first_test.command + " - " + first_test.name,
+            third_test.command + " - " + third_test.name,
+            second_test.command + " - " + second_test.name,
+        ]
 
 
 class TestTreeMinimum:

@@ -2,7 +2,7 @@ import os
 import re
 from typing import Any
 
-PATH_OF_DATA = "src/data"
+PATH_OF_DATA = "./data"
 
 
 WIDGET_TYPES = ("input", "button", "checkbox")

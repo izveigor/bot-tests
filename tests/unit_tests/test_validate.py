@@ -4,19 +4,19 @@ from unittest.mock import Mock, call, patch
 
 import pytest
 
+from src import validate
 from src.constants import WIDGET_TYPES
 from src.errors import BotParseException
 from src.tree import Node
-from src.validate import Validator, _QuestionValidator, _WidgetValidator
 from tests.helpers import JsonData
 
 
 class TestValidator:
-    @patch("src.validate.Validator._is_result_explanation_right")
-    @patch("src.validate.Validator._are_questions_right")
-    @patch("src.validate.Validator._is_description_right")
-    @patch("src.validate.Validator._is_name_right")
-    @patch("src.validate.Validator._is_command_right")
+    @patch("src.validate.is_result_explanation_right")
+    @patch("src.validate.are_questions_right")
+    @patch("src.validate.is_description_right")
+    @patch("src.validate.is_name_right")
+    @patch("src.validate.is_command_right")
     def test__init__(
         self,
         mock_is_command_right: Mock,
@@ -34,7 +34,9 @@ class TestValidator:
         result_explanation = test["result_explanation"]
         errors: list[Union[str, int]] = []
 
-        Validator(errors, command, name, description, questions, result_explanation)
+        validate.Validator(
+            errors, command, name, description, questions, result_explanation
+        )
         mock_is_command_right.assert_called_once_with(command, errors)
         mock_is_name_right.assert_called_once_with(name, errors)
         mock_is_description_right.assert_called_once_with(description, errors)
@@ -56,7 +58,7 @@ class TestIsCommandRight:
         ],
     )
     def test_right(self, mock_search: Mock, command: str) -> None:
-        Validator._is_command_right(command, [])
+        validate.is_command_right(command, [])
         assert isinstance(mock_search.mock_calls[0].args[0], Node)
 
     @pytest.mark.parametrize(
@@ -77,7 +79,7 @@ class TestIsCommandRight:
         with pytest.raises(
             BotParseException,
         ):
-            Validator._is_command_right(command, errors)
+            validate.is_command_right(command, errors)
         assert re.match(error, str(errors[0]))
 
     def test_if_command_exist(self, mock_search: Mock) -> None:
@@ -87,7 +89,7 @@ class TestIsCommandRight:
         errors: list[Union[str, int]] = []
 
         with pytest.raises(BotParseException):
-            Validator._is_command_right(command, errors)
+            validate.is_command_right(command, errors)
         assert re.match(error, str(errors[0]))
 
 
@@ -102,7 +104,7 @@ class TestIsNameRight:
         ],
     )
     def test_right(self, name: str) -> None:
-        Validator._is_name_right(name, [])
+        validate.is_name_right(name, [])
 
     @pytest.mark.parametrize(
         ("name", "error"),
@@ -117,7 +119,7 @@ class TestIsNameRight:
         with pytest.raises(
             BotParseException,
         ):
-            Validator._is_name_right(name, errors)
+            validate.is_name_right(name, errors)
         assert re.match(error, str(errors[0]))
 
 
@@ -135,7 +137,7 @@ class TestIsDescriptionRight:
         ],
     )
     def test_right(self, description: str) -> None:
-        Validator._is_description_right(description, [])
+        validate.is_description_right(description, [])
 
     @pytest.mark.parametrize(
         ("description", "error"),
@@ -167,7 +169,7 @@ class TestIsDescriptionRight:
         with pytest.raises(
             BotParseException,
         ):
-            Validator._is_description_right(description, errors)
+            validate.is_description_right(description, errors)
         assert re.match(error, str(errors[0]))
 
 
@@ -189,7 +191,7 @@ class TestAreQuestionsRight:
     def test_right(
         self, mock_question_validator__init__: Mock, questions: list[dict[str, Any]]
     ) -> None:
-        Validator._are_questions_right(questions, [])
+        validate.are_questions_right(questions, [])
 
     @pytest.mark.parametrize(
         ("questions", "error"),
@@ -216,7 +218,7 @@ class TestAreQuestionsRight:
         with pytest.raises(
             BotParseException,
         ):
-            Validator._are_questions_right(questions, errors)
+            validate.are_questions_right(questions, errors)
         assert re.match(error, str(errors[0]))
 
 
@@ -234,7 +236,7 @@ class TestIsResultExplanationRight:
     def test_right(
         self, result_explanation: Optional[dict[str, Any]], questions_length: int
     ) -> None:
-        Validator._is_result_explanation_right(result_explanation, questions_length, [])
+        validate.is_result_explanation_right(result_explanation, questions_length, [])
 
     @pytest.mark.parametrize(
         ("result_explanation", "questions_length", "error"),
@@ -293,17 +295,17 @@ class TestIsResultExplanationRight:
         with pytest.raises(
             BotParseException,
         ):
-            Validator._is_result_explanation_right(
+            validate.is_result_explanation_right(
                 result_explanation, questions_length, errors
             )
         assert re.match(error, str(errors[0]))
 
 
 class TestQuestionValidator:
-    @patch("src.validate._QuestionValidator._is_answer_explanation_right")
-    @patch("src.validate._QuestionValidator._is_answer_right")
-    @patch("src.validate._QuestionValidator._is_widget_right")
-    @patch("src.validate._QuestionValidator._is_body_right")
+    @patch("src.validate.is_answer_explanation_right")
+    @patch("src.validate.is_answer_right")
+    @patch("src.validate.is_widget_right")
+    @patch("src.validate.is_question_body_right")
     def test__init__(
         self,
         mock_is_body_right: Mock,
@@ -325,7 +327,9 @@ class TestQuestionValidator:
             answer_explanation = question.get("answer_explanation")
             errors: list[Union[str, int]] = []
 
-            _QuestionValidator(errors, body, widget, answer, answer_explanation)
+            validate._QuestionValidator(
+                errors, body, widget, answer, answer_explanation
+            )
 
             body_calls.append(call(body, errors))
             widget_calls.append(call(widget, errors))
@@ -349,7 +353,7 @@ class TestIsBodyQuestionRight:
         ],
     )
     def test_right(self, body: Union[str, dict[str, str]]) -> None:
-        _QuestionValidator._is_body_right(body, [])
+        validate.is_question_body_right(body, [])
 
     @pytest.mark.parametrize(
         ("body", "error"),
@@ -389,7 +393,7 @@ class TestIsBodyQuestionRight:
         with pytest.raises(
             BotParseException,
         ):
-            _QuestionValidator._is_body_right(body, errors)
+            validate.is_question_body_right(body, errors)
         assert re.match(error, str(errors[0]))
 
 
@@ -406,7 +410,7 @@ class TestIsWidgetRight:
         self, mock_widget_validator__init__: Mock, widget: Optional[dict[str, Any]]
     ) -> None:
         errors: list[Union[str, int]] = []
-        _QuestionValidator._is_widget_right(widget, errors)
+        validate.is_widget_right(widget, errors)
         if widget is not None:
             mock_widget_validator__init__.assert_called_once_with(
                 errors, widget["type"], widget["body"]
@@ -430,7 +434,7 @@ class TestIsWidgetRight:
         with pytest.raises(
             BotParseException,
         ):
-            _QuestionValidator._is_widget_right(widget, errors)
+            validate.is_widget_right(widget, errors)
         assert re.match(error, str(errors[0]))
 
 
@@ -449,7 +453,7 @@ class TestIsAnswerRight:
     def test_right(
         self, answer: Union[str, int, list[int]], widget: Optional[dict[str, Any]]
     ) -> None:
-        _QuestionValidator._is_answer_right(answer, widget, [])
+        validate.is_answer_right(answer, widget, [])
 
     @pytest.mark.parametrize(
         ("answer", "widget", "error"),
@@ -523,7 +527,7 @@ class TestIsAnswerRight:
         with pytest.raises(
             BotParseException,
         ):
-            _QuestionValidator._is_answer_right(answer, widget, errors)
+            validate.is_answer_right(answer, widget, errors)
         assert re.match(error, str(errors[0]))
 
 
@@ -545,7 +549,7 @@ class TestIsAnswerExplanationRight:
     def test_right(
         self, answer_explanation: Optional[Union[str, dict[str, str]]]
     ) -> None:
-        _QuestionValidator._is_answer_explanation_right(answer_explanation, [])
+        validate.is_answer_explanation_right(answer_explanation, [])
 
     @pytest.mark.parametrize(
         ("answer_explanation", "error"),
@@ -577,13 +581,13 @@ class TestIsAnswerExplanationRight:
         with pytest.raises(
             BotParseException,
         ):
-            _QuestionValidator._is_answer_explanation_right(answer_explanation, errors)
+            validate.is_answer_explanation_right(answer_explanation, errors)
         assert re.match(error, str(errors[0]))
 
 
 class TestWidgetValidator:
-    @patch("src.validate._WidgetValidator._is_body_right")
-    @patch("src.validate._WidgetValidator._is_type_right")
+    @patch("src.validate.is_widget_body_right")
+    @patch("src.validate.is_type_right")
     def test__init__(self, mock_is_type_right: Mock, mock_is_body_right: Mock) -> None:
         questions = JsonData.validate_right[0]["questions"]
         is_type_right_calls = []
@@ -596,7 +600,7 @@ class TestWidgetValidator:
                 body = widget.get("body")
                 errors: list[Union[str, int]] = []
 
-                _WidgetValidator(errors, widget_type, body)
+                validate._WidgetValidator(errors, widget_type, body)
 
                 is_type_right_calls.append(call(widget_type, errors))
                 is_body_right_calls.append(call(body, widget_type, errors))
@@ -615,7 +619,7 @@ class TestIsTypeRight:
         ],
     )
     def test_right(self, widget_type: Optional[str]) -> None:
-        _WidgetValidator._is_type_right(widget_type, [])
+        validate.is_type_right(widget_type, [])
 
     @pytest.mark.parametrize(
         ("widget_type", "error"),
@@ -631,7 +635,7 @@ class TestIsTypeRight:
         with pytest.raises(
             BotParseException,
         ):
-            _WidgetValidator._is_type_right(widget_type, errors)
+            validate.is_type_right(widget_type, errors)
         assert re.match(error, str(errors[0]))
 
 
@@ -647,7 +651,7 @@ class TestIsBodyRight:
         ],
     )
     def test_right(self, body: Optional[list[str]], widget_type: str) -> None:
-        _WidgetValidator._is_body_right(body, widget_type, [])
+        validate.is_widget_body_right(body, widget_type, [])
 
     @pytest.mark.parametrize(
         ("body", "widget_type", "error"),
@@ -708,5 +712,5 @@ class TestIsBodyRight:
         with pytest.raises(
             BotParseException,
         ):
-            _WidgetValidator._is_body_right(body, widget_type, errors)
+            validate.is_widget_body_right(body, widget_type, errors)
         assert re.match(error, str(errors[0]))
