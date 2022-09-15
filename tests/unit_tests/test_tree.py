@@ -1627,7 +1627,7 @@ class TestInorderTreeWalk:
         a.parent = x
         b.parent = x
 
-        result: list[Test] = []
+        result: list[str] = []
         tree = CommandsTestTree()
         tree.root = x
         tree._inorder_tree_walk(x, result)

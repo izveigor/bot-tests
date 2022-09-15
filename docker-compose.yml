@@ -7,7 +7,7 @@ services:
     container_name: bot_tests_bot
     command: python3 main.py
     volumes:
-      - data:/home/app/bot/src/data
+      - data:/home/app/bot/data
     env_file:
       - ./config/.prod.env
       - ./config/.prod.redis.env

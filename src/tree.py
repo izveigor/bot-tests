@@ -146,25 +146,25 @@ class CommandsTestTree(metaclass=Singleton):
     def delete(self, z: Node) -> None:
         color = z.color
         if z.left is None:
-            temp_node = z.right
-            self._transplant(z, z.right)
+            x = z.right
+            self._transplant(z, z.right)  # type: ignore
         elif z.right is None:
-            temp_node = z.left
+            x = z.left
             self._transplant(z, z.left)
         else:
             m = self._tree_minimum(z.right)
             color = m.color
-            temp_node = m.right
+            x = m.right
             if m.parent is not z:
-                self._transplant(m, m.right)
+                self._transplant(m, m.right)  # type: ignore
                 m.right = z.right
                 m.right.parent = m
             self._transplant(z, m)
             m.left = z.left
             m.left.parent = m
             m.color = z.color
-        if temp_node and color == ColorTree.BLACK:
-            self._delete_fixup(temp_node)
+        if x and color == ColorTree.BLACK:
+            self._delete_fixup(x)
 
     def _change_delete(self, x: Node) -> None:
         if x and x.parent and x is x.parent.left:
@@ -265,13 +265,13 @@ class CommandsTestTree(metaclass=Singleton):
         return x
 
     @lru_cache(maxsize=None)
-    def sort(self) -> list[Test]:
-        result: list[Test] = []
+    def sort(self) -> list[str]:
+        result: list[str] = []
         self._inorder_tree_walk(self.root, result)
 
         return result
 
-    def _inorder_tree_walk(self, x: Optional[Node], result: list[Test]) -> None:
+    def _inorder_tree_walk(self, x: Optional[Node], result: list[str]) -> None:
         if x is not None:
             self._inorder_tree_walk(x.left, result)
             result.append(x.key.command + " - " + x.key.name)

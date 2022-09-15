@@ -1,3 +1,4 @@
+import asyncio
 import json
 from importlib.metadata import packages_distributions
 from tempfile import TemporaryFile
@@ -37,10 +38,45 @@ class State:
         self._handler = handler
 
     async def send(self, from_user_id: int) -> None:
+        message = self._message
+        state = User.get(from_user_id, "state")
+        file_content: dict[str, Any]
+        if state == "10":
+            jsondata = User.get(from_user_id, "jsondata")
+            file_content = json.loads(jsondata)
+            type_ = file_content["questions"][len(file_content["questions"]) - 1][
+                "widget"
+            ]["type"]
+            if type_ == "input":
+                message += " (Для вашего типа пользовательского интерфейса введите любую строку)."
+            elif type_ == "button":
+                message += (
+                    " (Для вашего типа пользовательского интерфейса введите число)."
+                )
+            elif type_ == "checkbox":
+                message += ' (Для вашего типа пользовательского интерфейса введите числа, разделенные знаком "-" (Например: 1-3)).'
+        elif state == "13" or state == "14":
+            jsondata = User.get(from_user_id, "jsondata")
+            file_content = json.loads(jsondata)
+            if (
+                len(
+                    file_content["questions"][len(file_content["questions"]) - 1][
+                        "widget"
+                    ]["body"]
+                )
+                == 4
+            ):
+                User.set(from_user_id, state=10)
+                await bot.send_message(
+                    chat_id=from_user_id,
+                    text="Вы достигли лимита по созданию кнопок.",
+                )
+                return await STATES[10].send(from_user_id)
+
         if len(self._next_) == 1:
             await bot.send_message(
-                from_user_id,
-                self._message,
+                chat_id=from_user_id,
+                text=message,
             )
         else:
             keyboard = [[KeyboardButton(data["message"]) for data in self._next_]]
@@ -50,15 +86,16 @@ class State:
                 text=self._message,
                 reply_markup=markup,
             )
-        state = User.get(from_user_id, "state")
         if state == "22":
             User.delete(from_user_id, "state")
-            await BuilderTest().create_test(
-                from_user_id,
-                json.loads(User.get(from_user_id, "jsondata")),
+            await asyncio.gather(
+                BuilderTest().create_test(
+                    from_user_id,
+                    json.loads(User.get(from_user_id, "jsondata")),
+                )
             )
 
-    async def handle(self, from_user_id: int, message: str):
+    async def handle(self, from_user_id: int, message: str) -> None:
         if message == "/stop":
             User.delete(from_user_id, "state")
             User.delete(from_user_id, "jsondata")
@@ -68,12 +105,13 @@ class State:
             )
         else:
             fields = self._field.split(".")
+            file_content: dict[str, Any]
             try:
                 jsondata = User.get(from_user_id, "jsondata")
             except ValueError:
                 file_content = {}
             else:
-                file_content: dict[str, Any] = json.loads(jsondata)
+                file_content = json.loads(jsondata)
             if len(self._next_) == 1:
                 if self._handler is not None:
                     await self._handler(
@@ -156,7 +194,7 @@ STATES = [
         4,
         [{"state": 7, "message": ""}],
         "questions.body.text",
-        "Введите текст тела вопроса:",
+        "Введите текст вопроса:",
         validate.is_question_body_right,
         handlers.body_handler,
     ),
@@ -232,7 +270,7 @@ STATES = [
         13,
         [{"state": 11, "message": "Да"}, {"state": 10, "message": "Нет"}],
         "",
-        "Хотите добавить еще одну кнопку",
+        "Хотите добавить еще одну кнопку (максимум - 4 кнопки)?",
         None,
         None,
     ),
@@ -240,7 +278,7 @@ STATES = [
         14,
         [{"state": 12, "message": "Да"}, {"state": 10, "message": "Нет"}],
         "",
-        "Хотите добавить еще одну флаговую кнопку",
+        "Хотите добавить еще одну флаговую кнопку (максимум - 4 флаговой кнопки)?",
         None,
         None,
     ),
@@ -248,7 +286,7 @@ STATES = [
         15,
         [{"state": 16, "message": "Да"}, {"state": 17, "message": "Нет"}],
         "",
-        "Хотите добавить разъяснение вопроса?",
+        "Хотите добавить объяснение ответа?",
         None,
         None,
     ),
@@ -256,7 +294,7 @@ STATES = [
         16,
         [{"state": 18, "message": ""}],
         "questions.answer_explanation.text",
-        "Введите текст разъяснения вопроса:",
+        "Введите текст объяснения результата:",
         validate.is_answer_explanation_right,
         handlers.body_handler,
     ),
@@ -272,7 +310,7 @@ STATES = [
         18,
         [{"state": 19, "message": "Да"}, {"state": 17, "message": "Нет"}],
         "",
-        "Хотите добавить рисунок в объяснение вопроса?",
+        "Хотите добавить рисунок в объяснение результата?",
         None,
         None,
     ),
@@ -280,7 +318,7 @@ STATES = [
         19,
         [{"state": 17, "message": ""}],
         "questions.answer_explanation.url",
-        "Введите url вопроса:",
+        "Введите url рисунка:",
         validate.is_answer_explanation_right,
         handlers.body_handler,
     ),
@@ -328,7 +366,7 @@ STATES = [
         25,
         [{"state": 26, "message": "Да"}, {"state": 27, "message": "Нет"}],
         "",
-        "Добавить url объяснения промежутка?",
+        "Добавить рисунок в объяснение промежутка?",
         None,
         None,
     ),

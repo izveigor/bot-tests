@@ -2,7 +2,8 @@ import asyncio
 import os
 import shutil
 from traceback import print_exception
-from typing import Union
+from typing import Any, Union
+from xml.dom import NoModificationAllowedErr
 
 from telegram import Update
 from telegram.ext import (
@@ -24,7 +25,7 @@ from src.tree import CommandsTestTree, Node
 from src.user import User
 
 
-async def handle(state: str, update: Update, context: CallbackContext):
+async def handle(state: str, update: Update, context: CallbackContext) -> None:
     int_state = int(state)
     await STATES[int_state].handle(update.effective_user.id, update.message.text)
     await STATES[int(User.get(update.effective_user.id, "state"))].send(
@@ -32,7 +33,7 @@ async def handle(state: str, update: Update, context: CallbackContext):
     )
 
 
-async def create(update: Update, context: CallbackContext):
+async def create(update: Update, context: CallbackContext) -> None:
     path = os.path.join(PATH_OF_DATA, str(update.effective_user.id))
     if os.path.exists(path):
         BuilderTest().get_directory_number(os.listdir(path), [])
@@ -53,8 +54,8 @@ async def create(update: Update, context: CallbackContext):
         await STATES[int(state)].send(update.effective_user.id)
 
 
-def allow(function):
-    async def wrapper(update: Update, context: CallbackContext):
+def allow(function: Any) -> Any:
+    async def wrapper(update: Update, context: CallbackContext) -> Any:
         try:
             state = User.get(update.effective_user.id, "state")
         except ValueError:
@@ -77,7 +78,7 @@ async def start(update: Update, context: CallbackContext) -> None:
 async def help(update: Update, context: CallbackContext) -> None:
     await context.bot.send_message(
         update.effective_user.id,
-        '*Описание*:\nБот создан для создания и решения разнообразных тестов. Тесты создаются на основе json файла с разрешением ".json".\n\n Вот список моих команд в алфавитном порядке 👇:\n/about - показывает информацию о боте\n/delete \\[command] - удаляет тест. \n/help - показывает все возможные команды бота.\n/list \\[start-end] - показывает список тестов от start до end в алфавитном порядке (по умолчанию показывает первые 50 тестов).\n/my\\_tests - показывает список тестов, созданным пользователем.\n/start - приветствует пользователя и советует использовать команду /help.\n/start\\_test - начинает решение теста (работает только после команды "/test\\_{characters}")\n/stop - заканчивает тест и показывает результат пользователя (работает только после команды "/test\\_{characters}").\n/test\\_{characters} - показывает описание теста, после слова "/test\\_" допускается использование прописных и строчных латинских букв, десятичных цифр и знака "\\_".\n\nЖелаю удачи в создание и в решение тестов!',
+        '*Описание*:\nБот создан для создания и решения разнообразных тестов. Тесты создаются на основе json файла с разрешением ".json".\n\n Вот список моих команд в алфавитном порядке 👇:\n/about - показывает информацию о боте\n/create - последовательное создание теста\n/delete \\[command] - удаляет тест. \n/help - показывает все возможные команды бота.\n/list \\[start-end] - показывает список тестов от start до end в алфавитном порядке (по умолчанию показывает первые 50 тестов).\n/my\\_tests - показывает список тестов, созданным пользователем.\n/start - приветствует пользователя и советует использовать команду /help.\n/start\\_test - начинает решение теста (работает только после команды "/test\\_{characters}")\n/stop - заканчивает тест и показывает результат пользователя (работает только после команды "/test\\_{characters}").\n/test\\_{characters} - показывает описание теста, после слова "/test\\_" допускается использование прописных и строчных латинских букв, десятичных цифр и знака "\\_".\n\nЖелаю удачи в создание и в решение тестов!',
         parse_mode="Markdown",
     )
 

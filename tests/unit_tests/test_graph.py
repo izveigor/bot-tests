@@ -1,5 +1,6 @@
 import json
 from unittest.mock import AsyncMock, Mock, call, patch
+from xml.dom import NoModificationAllowedErr
 
 import pytest
 from fakeredis import FakeStrictRedis
@@ -13,7 +14,7 @@ from src.user import User
 @pytest.mark.asyncio
 @patch("src.graph.bot.send_message")
 class TestState:
-    async def test_handle_if_length_next_is_one(self, mock_send_message: Mock):
+    async def test_handle_if_length_next_is_one(self, mock_send_message: Mock) -> None:
         User.redis_ = FakeStrictRedis(**REDIS_SETTINGS)
         User.set(1, jsondata=json.dumps({"command": "/test_test"}))
         mock_validation = Mock()
@@ -38,7 +39,9 @@ class TestState:
 
         mock_send_message.assert_not_called()
 
-    async def test_handle_if_length_next_more_than_one(self, mock_send_message: Mock):
+    async def test_handle_if_length_next_more_than_one(
+        self, mock_send_message: Mock
+    ) -> None:
         User.redis_ = FakeStrictRedis(**REDIS_SETTINGS)
         User.set(1, jsondata=json.dumps({"command": "/test_test"}))
         User.set(1, state="0")
@@ -70,7 +73,7 @@ class TestState:
         assert isinstance(kwargs["reply_markup"], ReplyKeyboardRemove)
 
     @patch("src.graph.User.delete")
-    async def test_stop(self, mock_user_delete: Mock, mock_send_message: Mock):
+    async def test_stop(self, mock_user_delete: Mock, mock_send_message: Mock) -> None:
         state = State(
             0,
             [{"state": 1, "message": ""}],
@@ -91,7 +94,7 @@ class TestState:
     @patch("src.graph.User.get")
     async def test_send_if_length_next_is_one(
         self, mock_user_get: Mock, mock_send_message: Mock
-    ):
+    ) -> None:
         mock_validate = Mock()
         mock_handler = AsyncMock()
         mock_user_get.return_value = 1
@@ -105,12 +108,12 @@ class TestState:
             mock_handler,
         )
         await state.send(1)
-        mock_send_message.assert_called_once_with(1, message)
+        mock_send_message.assert_called_once_with(chat_id=1, text=message)
 
     @patch("src.graph.User.get")
     async def test_send_if_length_next_more_than_one(
         self, mock_user_get: Mock, mock_send_message: Mock
-    ):
+    ) -> None:
         mock_validate = Mock()
         mock_handler = AsyncMock()
         mock_user_get.return_value = 1

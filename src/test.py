@@ -212,11 +212,17 @@ class Test:
         elif right_answers_number == result_explanation_keys[i]:
             result_message = self._result_explanation[right_answers_number]
         else:
-            result_message = (
-                self._result_explanation[result_explanation_keys[0]]
-                if i == 0
-                else self._result_explanation[result_explanation_keys[i - 1]]
-            )
+            if i == 0:
+                if right_answers_number < result_explanation_keys[i]:
+                    result_message = "Объяснение результата отсутствует."
+                else:
+                    result_message = self._result_explanation[
+                        result_explanation_keys[0]
+                    ]
+            else:
+                result_message = self._result_explanation[
+                    result_explanation_keys[i - 1]
+                ]
 
         if isinstance(result_message, str):
             await bot.send_message(from_user_id, message + result_message)

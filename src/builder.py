@@ -40,7 +40,9 @@ class BuilderTest(metaclass=Singleton):
         """
         self._create_tests_from_files()
 
-    async def create_test(self, from_user_id, file_content):
+    async def create_test(
+        self, from_user_id: int, file_content: dict[str, Any]
+    ) -> None:
         directory = os.path.join(PATH_OF_DATA, str(from_user_id))
         if not os.path.exists(directory):
             os.mkdir(directory)  # pragma: no coverage

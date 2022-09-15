@@ -5,3 +5,4 @@ __pycache__
 .tox
 .mypy_cache
 logfile.log
+data

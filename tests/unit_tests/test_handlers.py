@@ -1,4 +1,5 @@
 import json
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -113,13 +114,13 @@ class TestHandlers:
     async def test_handlers(
         self,
         mock_send_message: Mock,
-        handler,
-        file_content,
-        fields,
-        message,
-        result_fields,
-        result_message,
-    ):
+        handler: Any,
+        file_content: dict[str, Any],
+        fields: list[str],
+        message: str,
+        result_fields: list[str],
+        result_message: Any,
+    ) -> None:
         User.redis_ = FakeStrictRedis(**REDIS_SETTINGS)
         validation = Mock()
         await handler(file_content, 1, fields, validation, message, [{"state": 1}])
