@@ -1,15 +1,12 @@
 import asyncio
 import json
-from importlib.metadata import packages_distributions
-from tempfile import TemporaryFile
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 from . import handlers, validate
 from .bot import bot
 from .builder import BuilderTest
-from .errors import BotParseException
 from .user import User
 
 
@@ -334,7 +331,7 @@ STATES = [
         21,
         [{"state": 23, "message": ""}],
         "result_explanation",
-        "Введите начало промежутка:",
+        "Введите начало промежутка: (Примечание: начало промежутка - это число правильных ответов. Если вы введете число 2, то объяснение результата будет появляться в тех случаях, если количество правильных ответов больше или равно 2. Однако, если присутствует промежуток, который больше 2 (например, 3), то объяснение промежутка будет появляться от 2 до 3 включительно (после 3 правильных ответов будет появляться промежуток, который определен под числом 3).",
         validate.is_result_explanation_right,
         handlers.result_explanation_handler,
     ),

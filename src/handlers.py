@@ -1,14 +1,7 @@
 import json
-from importlib.metadata import packages_distributions
-from tempfile import TemporaryFile
-from typing import Any, Callable, Optional
-from unittest.mock import NonCallableMagicMock
+from typing import Any
 
-from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
-
-from . import validate
 from .bot import bot
-from .builder import BuilderTest
 from .errors import BotParseException
 from .user import User
 
