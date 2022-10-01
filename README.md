@@ -1,4 +1,4 @@
-# Bot tests [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/izveigor/bot-tests/blob/main/LICENSE) 
+# Bot tests [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/izveigor/bot-tests/blob/main/LICENSE) ![Tests](https://github.com/izveigor/bot-tests/actions/workflows/tests.yml/badge.svg)
 ![3](https://user-images.githubusercontent.com/68601180/186197495-51627433-ee85-4243-87cb-4e59a4ddb2f6.JPG)
 
 (Ссылка на аватар бота - https://ru.wikipedia.org/wiki/HAL_9000#/media/%D0%A4%D0%B0%D0%B9%D0%BB:HAL9000.svg)
