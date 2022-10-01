@@ -86,4 +86,4 @@ jobs:
       - name: Tests
         run: python3 -m tox -e py310
         env:
-          TELEGRAM_TOKEN: ${{ TELEGRAM_TOKEN }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
